@@ -735,3 +735,362 @@ on VentasDetalle.CodOrd=Venta.CodOrd
 where year(orderdate)=2013
 ```
 
+# DAY 04
+
+- Crearemos una base de datos y despues le vamos a relacionar. Lo vamos escribir igual que la imagen, si hay errores lo vamos utilizar unos metodos que es  el DML.
+![image](https://github.com/MaricarmenCatalinaRaymundoRomero/Sql_Server_Implementacion-SistemasUni/assets/129924045/95fc4488-fc63-4203-9ac5-b20fd9efa8ea)
+
+```
+CREATE DATABASE BDPoliclinico
+--Crear la tabla Especialidad
+
+create table Especialidad
+(--inicia la tabla
+CodEsp int not null,--obligatorio
+NomEsp varchar(30),
+DesEsp varchar(50),
+CodPro date--Para luego eliminar
+--Aqui añadimos la columna Imagen de Especialidad
+)--fin de la tabla
+
+select*
+from Especialidad
+
+--Para el caso de la Tabla Medico
+
+create table Medico
+(--inicio de la tabla
+CodMed  int primary key,
+NomMed varchar(30),
+ApaMed varchar(40),
+AmaMed varchar(40),
+WhaMed int,--Añadir la restriccion de Numeros 900000000 hasta 999999999
+TsaPac varchar(3),--Eliminar esta columna
+CodESP int--Para relacionar con la Tabla
+--adicionar la columna Email del medico EmaMed
+)--fin de la tabla
+
+
+
+select*
+from Medico
+
+--LA TABLA DE PACIENTEFINAL
+
+create table PacienteFinal
+(--inicio de tabla
+CodPac int primary key identity (20230001,1),--20230001 Numero inicial=20230001/contador=1
+NomPac varchar(30),
+ApaPac varchar(40),
+AmaPac varchar(40),
+DniPac int unique check(DniPac>= 1000000 and DniPac<=99999999),--Puede tener un unique y un check / Tendra un limite
+FecPac date check(FecPac<=getdate()),--La fecha de nacimiento debe ser <= a la fecha actual
+GenPac bit,
+DirPac  text,
+WhaPac int check(WhaPac>=900000000 and WhaPac<=999999999),
+FotPac image default'C:\Users\Administrator\Desktop\img\SinFoto.jpg',
+InsPac varchar(20),
+TsaPac varchar(3) check(TsaPac in('A+','A-','B+','B-','AB+','AB-','O+','O-')),--Solo ingresar esos tipos de datos
+TllPac int check(TllPac>=0 and (TllPac>=10 and TllPac<=250)),--Tiene el limite de las tallas de 10 a 250
+PsoPac int
+)--fin de tabla
+
+
+select*
+from PacienteFinal
+
+
+--DML--> OJITO, ESTOS PROCEDIMIENTOS SON MUY"PELIGROSO", Tener cuidado
+--------------------------------------------------------------------------------------------
+```
+
+- SUGERENCIA:Antes de Eliminar columnas realice un Backup(Copia de Seguridad)
+   * Que Objeto
+	 * Que Accion
+
+- Eliminar la columna CodPro de la Tabla Especialidad
+```
+alter table Especialidad--Que Objeto(Tabla)
+drop column CodPro--Que Accion (Eliminar)  
+```
+- Eliminar la columna TsaPac de la Tabla Medico
+```
+alter table Medico--Que Objeto
+drop column TsaPac--Que Accion
+```
+
+- PARA EL CASO DE ADICIONAR COLUMNAS
+    * Que Objeto(Tabla)
+    * Que Accion(Adicionar)
+
+
+- Aqui añadimos la columna Imagen de Especialidad(CodIma)
+```
+alter table Especialidad--Que Objeto(Tabla)
+add CodIma image--Que Accion(Adicionar)
+```
+
+- Adicionar la columna EmaMed de la tabla Medico
+```
+alter table Medico--Que Objeto(Tabla)
+add EmaMed varchar(50)--Que Accion(Adicionar)
+```
+
+
+- PAR EL CASO DE LAS RESTRICCIONES
+    * Añadir la restriccion de Numeros de Whatsapp de la tabla Medico
+```
+--VER LAS RESTRICCIONES
+sp_help Medico
+
+alter Table Medico--Que Objeto(Tabla)
+add check(WhaMed>=900000000 and WhaMed<=999999999)--Que accion (Adicionar)
+```
+
+- PARA RELACIONAR DOS TABLAS
+    * OJITO OJITO: Primero las dos tablas deben tener PK
+    * Vamos a adicionar el PK a Especialidad a la columna CodEsp
+```
+alter table Especialidad --Que Objeto(Tabla)
+add primary key(CodEsp)--Que Accion(Adicionar)
+```
+
+- Relacionado Medico con Especialidad
+```
+alter table Medico--Que Objeto(Tabla)ORIGEN
+add foreign key(CodEsp) references Especialidad--Que Accion(Relacionar y/o Referenciar)DESTINO
+```
+
+### Finalmente
+- Crear la tabla Cita Relacionado inmediatamente con Medico y Paciente
+```
+create table Cita
+ (--inicio de tabla
+ CodCit int primary key,
+ FecCit date,
+ CodMed int references Medico,
+ CodPac int references PacienteFinal,
+ TurCit varchar(15)
+ )--fin de la tabla
+```
+
+## CONSULTAS 
+
+### Modificar y/o Actualizar datos
+  
+```
+select*
+from Productos
+```
+
+- REQUERIMIENTOS
+    * Que tabla
+    * Que nuevo dato a asignar
+    * Que condicion
+
+- En la tabla Productos asignar un nuevo precio al producto de codigo 14 siendo 13.99 soles
+```
+update Productos--Que tabla
+set UnitPrice = 13.99--Que nuevo dato a asignar(set= asignar, get =   )
+where CodPro = 14--Que condicion
+```
+
+- Eliminar datos-->> con Transacction
+```
+select*
+from Productos
+```
+- En la Tabla productos modificar asignado los siguiente nuevos datos al producto de codigo 7:
+    * Nombre:Arroz Caserita Superior
+    * Categoria: Abarrotes 7
+    * Adicionar la stock 100 unidades
+```
+  update Productos--Que tabla
+	set ProductName='Arroz Caserita Superior',CodCat=7,UnitsInStock=UnitsInStock+100--Que nuevo dato a asignar
+	where CodPro= 7--Que condicion
+```
+```
+ --Mostrar 
+	select*
+	from Productos
+	WHERE CodCat=7
+
+	--7	    Arroz Caserita Superior		2.79
+	--14	Aceite Vegetal CAPRI Botella 1L		13.99
+	--28	Aceite de Oliva Extra Virgen Botella 1L		14.99
+	--51	Arroz Extra COSTEÑO Bolsa 5Kg	15.99
+	--74	Arroz Superior PAISANA Bolsa 5.25Kg		16.25
+	
+```
+
+- Por temporada de invierno se elevan los precios de los Abarrotes a un 30%
+```
+    update Productos--Que tabla
+		set UnitPrice=UnitPrice*1.3--Que nuevo dato a asignar
+		where CodCat=7--Que condicion
+
+--Mostrar 
+		select*
+		from Productos
+		WHERE CodCat=7
+```
+
+- drop: eliminar una restriccion
+- delete: eliminar una tabla
+
+
+## ELIMINAR DATOS DE UNA TABLA
+- Que tabla 
+- OJO OJITO: Que condicion
+
+
+- Eliminar el producto de codigo 78
+```
+			delete Productos--Que tabla 
+			where CodPro= 78--OJO OJITO: Que condicion
+---The DELETE statement conflicted with the REFERENCE constraint "FK_Order_Details_Productos". The conflict occurred in database "BDMegagis", table 
+
+"dbo.VentasDetalle", column 'CodPro'.
+			--Eliminar el producto de codigo 3///ERROR ERROR 
+			delete Productos--Que tabla (delete = borrar)
+			where CodPro= 3--OJO OJITO: Que condicion
+```
+- Mostrar la tabla donde esta siendo utilizado el producto de codigo 3
+```
+			select*
+			from VentasDetalle
+			where CodPro=3
+```
+
+- Eliminar con modo de proteccion //EN FORMA ERROR
+```
+			begin tran NomTra01
+			delete VentasDetalle--Que tabla 
+			--where CodPro= 3--OJO OJITO: Que condicion
+```
+- Eliminar con modo de proteccion // CORRECTO
+```
+			begin tran NomTra01
+			delete VentasDetalle--Que tabla 
+			where CodPro= 3--OJO OJITO: Que condicion
+		--Mostrar
+		select*
+		from VentasDetalle
+
+		--Control Z para SQL Server
+		rollback tran NomTra01
+
+		--Mostrar Nuevamente
+		select*
+		from VentasDetalle
+
+```
+- TAREA: CUANTAS VECES PUEDE ROLLBACK
+
+En SQL Server, la cantidad de veces que se puede realizar un "rollback" 
+no está limitada por un número máximo predeterminado. SQL Server utiliza 
+un mecanismo de registro de transacciones para respaldar las operaciones 
+de rollback y asegurar la integridad de los datos.
+
+El número de "rollbacks" que se pueden realizar en SQL Server depende de
+la capacidad del registro de transacciones y del espacio disponible en 
+el disco para almacenar los registros. A medida que se realizan "rollbacks", 
+los registros de transacciones correspondientes se marcan como inactivos y 
+se liberan espacio para nuevas transacciones.
+
+
+# KOTLIN
+
+- "PROCEDIMIENTO ALMACENADOS"
+- COMO VERLO : DataBase Diagrams/Programmability/Strored Procedures
+
+# PA
+
+- Crear PA para listar los Clientes
+```
+create proc PAListarCliente
+as
+begin --inicia
+--debemos utilizar cualquier comando SQL
+  select*
+	from Clientes
+	end--termina el PA
+```
+
+- Luego de crear para ejecutar
+```
+exec PAListarCliente
+```
+
+- Crear PA para listar los Clientes
+```
+  alter proc PAListarCliente
+	as
+	begin --inicia el PA
+	--debemos utilizar cualquier comando SQL
+	select*
+	from Clientes
+	where Region ='Moquegua'
+	end--termina el PA
+
+	--Ahora Ejecutamos
+	exec PAListarCliente
+```
+- Para mostrar el contenido de un PA
+```
+sp_helptext PAListarCliente
+```
+
+- MODIFICAR EL PA ANTERIOR PARA HACER QUE LA REGION INGRESE COMO PARAMETRO EXTERNO
+```	
+  alter proc PAListarCliente
+	@Reg varchar(15)--Ingresamos el parametro 
+	as
+	begin --inicia el PA
+	--debemos utilizar cualquier comando SQL
+	select*
+	from Clientes
+	where Region =@Reg
+	end--termina el PA
+
+```
+- Ejecutamos el PA e ingreando la region desde "fuera"
+```
+	exec PAListarCliente Lima
+```
+- Para mostrar el contenido de un PA
+```
+	sp_helptext PAListarCliente 
+```
+- COMO ELIMINAR
+```
+		drop proc PAListarCliente
+```
+
+# XML -JSON
+- A partir de una consulta crear una XML de la lista de Clientes
+```
+select*
+from Clientes
+for XML Auto
+```
+- Test Final
+- PRESIONAR EL LINK Y DENTRO DEL LINK ----GUARDARLO CON FILE/ SAVE IS Y ABRIRLO CON TEXT
+
+- Crear XML de los clientes en forma eriquecida y neutral para cualquier Aplicacion
+```
+select*
+from Clientes 
+for XML path('Cliente'),root('Clientes')---(1)Cada fila (2)CONTENIDO Total
+```
+- Como abrir xml a excel
+- guardarlo control+s
+- abrir excel: Datos/Obtener Datos/Desde un archivo/Desde un archivo XML
+- Seleccionar el archivo que guardastey lo cargamos
+
+# PARA CASO DE JSON
+```
+select*
+from Clientes 
+for JSON Auto---(1)Cada fila (2)CONTENIDO Total
+```
